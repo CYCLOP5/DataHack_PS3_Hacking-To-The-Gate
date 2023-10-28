@@ -1,13 +1,13 @@
-choice = input("Enter 1 for bicep.py, 2 for pushup.py, or 3 for app_squat.py: ")
+
+import os
+
+choice = input("Enter your choice (1 for pushup, 2 for squat, 3 for biceps): ")
 
 if choice == "1":
-    exec(open("/home/cyclops/Desktop/datahon/bicep.py").read())
+    os.system('python /path/to/pushup.py')
 elif choice == "2":
-    exec(open("/home/cyclops/Desktop/datahon/pushup.py").read())
+    os.system('python /path/to/app_squat.py')
 elif choice == "3":
-    exec(open("/home/cyclops/Desktop/datahon/app_squat.py").read())
+    os.system('python /path/to/bicep.py')
 else:
-    print("Invalid choice. Please enter 1, 2, or 3.")
-
-
-
+    print("Invalid choice")

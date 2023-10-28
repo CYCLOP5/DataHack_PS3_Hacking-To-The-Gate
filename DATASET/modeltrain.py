@@ -21,7 +21,7 @@ LABEL_MAP_PATH = 'label_map.pbtxt'
 OUTPUT_MODEL_PATH = 'exercise_detection_model'
 
 # Load the label map
-label_map = {'pushup': 1, 'squat': 2, 'bicep_curl': 3}
+label_map = {'pushup': 1, 'squat': 2}
 with open(LABEL_MAP_PATH, 'w') as f:
     for name, id in label_map.items():
         f.write('item {\n')
