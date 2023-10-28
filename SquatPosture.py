@@ -35,14 +35,6 @@ def get_params(results, exercise='squats', all=False):
     points = {}
     nose = results.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE]
     points["NOSE"] = np.array([nose.x, nose.y, nose.z])
-    left_eye = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_EYE]
-    points["LEFT_EYE"] = np.array([left_eye.x, left_eye.y, left_eye.z])
-    right_eye = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_EYE]
-    points["RIGHT_EYE"] = np.array([right_eye.x, right_eye.y, right_eye.z])
-    mouth_left = results.pose_landmarks.landmark[mp_pose.PoseLandmark.MOUTH_LEFT]
-    points["MOUTH_LEFT"] = np.array([mouth_left.x, mouth_left.y, mouth_left.z])
-    mouth_right = results.pose_landmarks.landmark[mp_pose.PoseLandmark.MOUTH_RIGHT]
-    points["MOUTH_RIGHT"] = np.array([mouth_right.x, mouth_right.y, mouth_right.z])
     left_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
     points["LEFT_SHOULDER"] = np.array([left_shoulder.x, left_shoulder.y, left_shoulder.z])
     right_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER]
@@ -79,9 +71,6 @@ def get_params(results, exercise='squats', all=False):
     points["MID_SHOULDER"] = (points["LEFT_SHOULDER"] + points["RIGHT_SHOULDER"]) / 2
     points["MID_HIP"] = (points["LEFT_HIP"] + points["RIGHT_HIP"]) / 2
 
-    z_eyes = (points["RIGHT_EYE"][2] + points["LEFT_EYE"][2]) / 2
-    z_mouth = (points["MOUTH_LEFT"][2] + points["MOUTH_RIGHT"][2]) / 2
-
     theta_neck = get_angle(np.array([0, 0, -1]),
                            points["NOSE"] - points["MID_HIP"])
 
@@ -93,7 +82,6 @@ def get_params(results, exercise='squats', all=False):
 
     theta_s = (theta_s1 + theta_s2) / 2
 
-    z_face = z_eyes - z_mouth
 
     theta_k1 = get_angle(points["RIGHT_HIP"] - points["RIGHT_KNEE"],
                          points["RIGHT_ANKLE"] - points["RIGHT_KNEE"])

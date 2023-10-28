@@ -10,7 +10,7 @@ def main():
     count = 0
     direction = 0
     form = 0
-    feedback = "Fix Form"
+    feedback = "GOOFY Form"
     recordedCount = 0
 
     while cap.isOpened():

@@ -17,7 +17,7 @@ model = tf.keras.models.load_model("working_model_1")
 class VideoCamera(object):
     def __init__(self):
         self.video = cv2.VideoCapture(2)
-
+        #self.video = cv2.VideoCapture('/home/cyclops/Desktop/datahon/squats.mp4')
     def __del__(self):
         self.video.release()
 
@@ -25,14 +25,14 @@ def gen(camera):
     cap = camera.video
     i=0
     with mp_pose.Pose(
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5) as pose:
+            min_detection_confidence=0.4, #more lenient for  squat coz squats are very hard lmao
+            min_tracking_confidence=0.4) as pose:
         while cap.isOpened():
             success, image = cap.read()
             image = cv2.flip(image, 1)
 
             if not success:
-                print(" empty camera frame.")
+                print("empty camera frame.")
                 break
 
             image_height, image_width, _ = image.shape
@@ -67,7 +67,7 @@ def gen(camera):
 
             output[0][2] += 0.1
 
-            print(output[0][2], output[0][3])
+            #print(output[0][2], output[0][3])
 
             label = ""
             for i in range(1, 4):
@@ -84,8 +84,7 @@ def gen(camera):
 
             i+=1
 
-            mp_drawing.draw_landmarks(
-                image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+            mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
             coords = landmarks_list_to_array(results.pose_landmarks, image.shape)
             label_params(image, params, coords)

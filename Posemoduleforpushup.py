@@ -21,7 +21,9 @@ class PoseDetector(BasePoseDetector):
         if debug:
             print(angle)
         ##89.363
-        #lmlist 11, 13, 15
+        #45.3324 
+        #WOOOOOOOO IT WORKS
+        #lmlist 11, 13, 15  
         
         if draw:
             cv2.line(img, (x1, y1), (x2, y2), (255,255,255), 3)
