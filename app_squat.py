@@ -1,14 +1,10 @@
-import dash
-from dash import dcc
-from dash import html
-import dash_dangerously_set_inner_html
+import cv2
 import mediapipe as mp
 import SquatPosture as sp
-from flask import Flask, Response
-import cv2
 import tensorflow as tf
 import numpy as np
 from utils import landmarks_list_to_array, label_params, label_final_results
+
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
@@ -16,14 +12,17 @@ model = tf.keras.models.load_model("working_model_1")
 
 class VideoCamera(object):
     def __init__(self):
-        self.video = cv2.VideoCapture(2)
-        #self.video = cv2.VideoCapture('/home/cyclops/Desktop/datahon/squats.mp4')
+        #self.video = cv2.VideoCapture(0)
+        self.video = cv2.VideoCapture('/home/cyclops/Desktop/datahon/squats.mp4')
     def __del__(self):
         self.video.release()
 
 def gen(camera):
     cap = camera.video
     i=0
+    reps = 0
+    sets = 1
+    prev_rep_time = 0
     with mp_pose.Pose(
             min_detection_confidence=0.4, #more lenient for  squat coz squats are very hard lmao
             min_tracking_confidence=0.4) as pose:
@@ -78,8 +77,6 @@ def gen(camera):
 
             label += 'x' if output[0][4] > 0.15 and label=='c' else ''
 
-
-        
             label_final_results(image, label)
 
             i+=1
@@ -89,45 +86,25 @@ def gen(camera):
             coords = landmarks_list_to_array(results.pose_landmarks, image.shape)
             label_params(image, params, coords)
 
+            cv2.imshow('Posture', image)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
-            ret, jpeg = cv2.imencode('.jpg', image)
-            frame = jpeg.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+            # Increment reps and sets
+            if label == "k":
+                reps += 1
+                if reps == 1:
+                    prev_rep_time = cv2.getTickCount()
+                elif reps == 6:
+                    sets += 1
+                    reps = 0
+                    current_rep_time = cv2.getTickCount()
+                    time_diff = (current_rep_time - prev_rep_time) / cv2.getTickFrequency()
+                    prev_rep_time = current_rep_time
+                    print("Set:", sets)
+                    print("Time taken between reps:", time_diff, "seconds")
 
+        cap.release()
+        cv2.destroyAllWindows()
 
-server = Flask(__name__)
-app = dash.Dash(__name__, server=server)
-app.title = "Posture"
-
-
-@server.route('/video_feed')
-def video_feed():
-    return Response(gen(VideoCamera()) ,mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
-app.layout = html.Div(className="main", children=[
-    html.Link(
-        rel="stylesheet",
-        href="/assets/stylesheet.css"
-    ),
-    dash_dangerously_set_inner_html.DangerouslySetInnerHTML("""
-        <div class="main-container">
-            <table cellspacing="20px" class="table">
-                <tr class="row">
-                    <td> <h1> Posture </h1> </td>
-                </tr>
-
-                <tr class="row">
-                    <td> <img src="/video_feed" class="feed"/> </td>
-                </tr>
-                <tr class="disclaimer">
-                    <td> shit somehow workss </td>
-                </tr>
-            </table>
-        </div>
-    """),
-])
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
+gen(VideoCamera())

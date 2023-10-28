@@ -1,10 +1,11 @@
 import cv2
 import numpy as np
+import time
 from Posemoduleforpushup import PoseDetector
 debug = False
 def main():
-    #cap = cv2.VideoCapture('/home/cyclops/Desktop/datahon/pushuptest.mp4')
-    cap = cv2.VideoCapture(2)
+    cap = cv2.VideoCapture('/home/cyclops/Desktop/datahon/pushuptest.mp4')
+    #cap = cv2.VideoCapture(2)
     
     detector = PoseDetector()
     count = 0
@@ -12,6 +13,9 @@ def main():
     form = 0
     feedback = "GOOFY Form"
     recordedCount = 0
+    start_time = 0
+    end_time = 0
+    rep_time = 0
 
     while cap.isOpened():
         ret, img = cap.read() 
@@ -43,6 +47,11 @@ def main():
                         if direction == 0:
                             count += 0.5
                             direction = 1
+                            end_time = time.time()
+                            rep_time = end_time - start_time
+                            print("Time taken for rep:", rep_time)
+                            if count == 6:
+                                exit(0)
                     else:
                         feedback = "goofy form"
                         
@@ -52,11 +61,12 @@ def main():
                         if direction == 1:
                             count += 0.5
                             direction = 0
+                            start_time = time.time()
                     else:
                         feedback = "goofy Form"
                         
-            if count != recordedCount:
-                print(count)
+            #if count != recordedCount:
+                #print(count)
             
             recordedCount = count
 
