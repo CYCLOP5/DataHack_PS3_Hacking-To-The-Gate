@@ -63,11 +63,6 @@ display_pos = None
 
 push_up_counter = 0
 
-
-
-
-
-
 vid = cv2.VideoCapture(0)
 
 width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))

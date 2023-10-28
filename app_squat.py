@@ -70,7 +70,6 @@ def gen(camera):
             print(output[0][2], output[0][3])
 
             label = ""
-
             for i in range(1, 4):
                 label += output_name[i] if output[0][i] > 0.5 else ""
 
