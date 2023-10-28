@@ -1,8 +1,17 @@
 import cv2
 import numpy as np
 import mediapipe as mp
+import time
+
 left_count = -1
 right_count = -1
+set_count = 0
+rep_count = 0
+last_curl_time = time.time()
+set_start_time = time.time()
+last_curl_angle = None
+last_curl_time = None
+
 def calc_angle(a,b,c):
     ''' 
         a,b,c -- a shoulder
@@ -59,10 +68,31 @@ def infer():
         
             if left_angle > 160 and right_angle > 160:
                 both_flag = 'down'
+                last_curl_angle = None
+                last_curl_time = time.time()
                
             if (left_angle < 50 or right_angle < 50) and both_flag=='down':   
                 both_count += 1
                 both_flag = 'up'
+                current_time = time.time()
+                time_diff = current_time - last_curl_time
+                last_curl_time = current_time
+                rep_count += 1
+                print("Rep count:", rep_count)
+                if rep_count % 6 == 0:
+                    set_count += 1
+                    print("Set count:", set_count)
+                    set_time_diff = current_time - set_start_time
+                    set_start_time = current_time
+                    print("Time between sets:", set_time_diff)
+
+               
+                    angle_diff = abs(last_curl_angle - left_angle)
+                    work = angle_diff / 360.0 #  1 rep = 360 degrees
+                    power = work / time_diff
+                    print("Power:", power)
+
+                last_curl_angle = left_angle
             
         except:
             pass
@@ -82,6 +112,10 @@ def infer():
         elif k==ord('r'): # reset
             both_count = 0
             both_flag = None
+            set_count = 0
+            rep_count = 0
+            last_curl_time = time.time()
+            set_start_time = time.time()
 
     cap.release()
     cv2.destroyAllWindows()

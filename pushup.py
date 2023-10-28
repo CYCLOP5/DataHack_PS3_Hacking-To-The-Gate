@@ -2,7 +2,9 @@ import cv2
 import numpy as np
 import time
 from Posemoduleforpushup import PoseDetector
+
 debug = False
+
 def main():
     cap = cv2.VideoCapture('/home/cyclops/Desktop/datahon/pushuptest.mp4')
     #cap = cv2.VideoCapture(2)
@@ -16,6 +18,7 @@ def main():
     start_time = 0
     end_time = 0
     rep_time = 0
+    power_output = 0
 
     while cap.isOpened():
         ret, img = cap.read() 
@@ -33,7 +36,7 @@ def main():
             shoulder = detector.findAngle(img, 13, 11, 23)
             hip = detector.findAngle(img, 11, 23,25)
             
-            per = np.interp(elbow, (90, 160), (0, 100))
+            per = np.interp(elbow, (90, 160), (0, 10))
             
             bar = np.interp(elbow, (90, 160), (380, 50))
 
@@ -49,13 +52,15 @@ def main():
                             direction = 1
                             end_time = time.time()
                             rep_time = end_time - start_time
+                            power_output = (int) (np.interp(np.cos(elbow) / rep_time, (0, 1), (1, 10)))
                             print("Time taken for rep:", rep_time)
-                            if count == 6:
+                            print("Power output:", power_output)
+                            if count == 1:
                                 exit(0)
                     else:
                         feedback = "goofy form"
                         
-                if per == 100:
+                if per == 10:
                     if elbow > 160 and shoulder > 40 and hip > 160:
                         feedback = "G0 DOWN NOW"
                         if direction == 1:
@@ -74,7 +79,7 @@ def main():
             if form == 1:
                 cv2.rectangle(img, (580, 50), (600, 380), (0, 255, 0), 3)
                 cv2.rectangle(img, (580, int(bar)), (600, 380), (0, 255, 0), cv2.FILLED)
-                cv2.putText(img, f'{int(per)}%', (565, 430), cv2.FONT_HERSHEY_PLAIN, 2,(255, 0, 0), 2)
+                cv2.putText(img, f'{int(per)}', (565, 430), cv2.FONT_HERSHEY_PLAIN, 2,(255, 0, 0), 2)
 
             cv2.putText(img, str(int(count)), (25, 455), cv2.FONT_HERSHEY_PLAIN, 5, (0, 0, 0), 5)
             cv2.putText(img, feedback, (500, 40 ), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)

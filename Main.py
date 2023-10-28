@@ -8,3 +8,6 @@ elif choice == "3":
     exec(open("/home/cyclops/Desktop/datahon/app_squat.py").read())
 else:
     print("Invalid choice. Please enter 1, 2, or 3.")
+
+
+
