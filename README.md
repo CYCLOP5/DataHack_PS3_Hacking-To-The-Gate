@@ -12,5 +12,6 @@ The LSTM attention model for recocgnition of excercise >100mb which is the max f
 
 The demo video for all the programs are in DEMO FOR JUDGES folder
 
+The demo video for all the programs are in DEMO FOR JUDGES folder The streamlib graphs are in 'streamlit for graphs' folder
 
-[Graph can be viewed here](https://cyclop5-datahack-ps3-hacking-to-streamlitforgraphsgraphs-hqum0h.streamlit.app/)
+
