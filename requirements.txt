@@ -13,3 +13,5 @@ protobuf
 pyparsing
 python-dateutil
 six
+
+--extra-index-url=https://packagecloud.io/github/git-lfs/pypi/simple

@@ -1,8 +1,8 @@
 import streamlit as st
 import cv2
-from tensorflow import keras
-from keras.models import Model
-from keras.layers import (
+
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import (
     LSTM,
     Dense,
     Dropout,
@@ -21,17 +21,14 @@ from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration
 import av
 
 
-## Build and Load Model
 def attention_block(inputs, time_steps):
     """
     Attention layer for deep neural network
 
     """
-    # Attention weights
     a = Permute((2, 1))(inputs)
     a = Dense(time_steps, activation="softmax")(a)
 
-    # Attention vector
     a_probs = Permute((2, 1), name="attention_vec")(a)
 
     # Luong's multiplicative score
@@ -81,8 +78,6 @@ def build_model(
 HIDDEN_UNITS = 256
 model = build_model(HIDDEN_UNITS)
 
-## App
-
 
 st.write("## Settings")
 threshold1 = st.slider("Minimum Keypoint Detection Confidence", 0.00, 1.00, 0.50)
@@ -90,28 +85,23 @@ threshold2 = st.slider("Minimum Tracking Confidence", 0.00, 1.00, 0.50)
 threshold3 = st.slider("Minimum Activity Classification Confidence", 0.00, 1.00, 0.50)
 
 
-## Mediapipe
-mp_pose = mp.solutions.pose  # Pre-trained pose estimation model from Google Mediapipe
-mp_drawing = mp.solutions.drawing_utils  # Supported Mediapipe visualization tools
+mp_pose = mp.solutions.pose
+mp_drawing = mp.solutions.drawing_utils
 pose = mp_pose.Pose(
     min_detection_confidence=threshold1, min_tracking_confidence=threshold2
-)  # mediapipe pose model
+)
 
 
-## Real Time Machine Learning and Computer Vision Processes
 class VideoProcessor:
     def __init__(self):
-        # Parameters
         self.actions = np.array(["curl", "press", "squat"])
         self.sequence_length = 30
         self.colors = [(245, 117, 16), (117, 245, 16), (16, 117, 245)]
         self.threshold = threshold3
 
-        # Detection variables
         self.sequence = []
         self.current_action = ""
 
-        # Rep counter logic variables
         self.curl_counter = 0
         self.press_counter = 0
         self.squat_counter = 0
@@ -209,86 +199,71 @@ class VideoProcessor:
         return
 
     @st.cache()
-    def count_reps(self, image, landmarks, mp_pose):
-        """
-        Counts repetitions of each exercise. Global count and stage (i.e., state) variables are updated within this function.
+    def count_reps(image, current_action, landmarks, mp_pose):
+        global curl_counter, press_counter, squat_counter, curl_stage, press_stage, squat_stage
 
-        """
+        if current_action == "curl":
+            shoulder = get_coordinates(landmarks, mp_pose, "left", "shoulder")
+            elbow = get_coordinates(landmarks, mp_pose, "left", "elbow")
+            wrist = get_coordinates(landmarks, mp_pose, "left", "wrist")
 
-        if self.current_action == "curl":
-            # Get coords
-            shoulder = self.get_coordinates(landmarks, mp_pose, "left", "shoulder")
-            elbow = self.get_coordinates(landmarks, mp_pose, "left", "elbow")
-            wrist = self.get_coordinates(landmarks, mp_pose, "left", "wrist")
+            angle = calculate_angle(shoulder, elbow, wrist)
 
-            # calculate elbow angle
-            angle = self.calculate_angle(shoulder, elbow, wrist)
-
-            # curl counter logic
             if angle < 30:
-                self.curl_stage = "up"
-            if angle > 140 and self.curl_stage == "up":
-                self.curl_stage = "down"
-                self.curl_counter += 1
-            self.press_stage = None
-            self.squat_stage = None
+                curl_stage = "up"
+            if angle > 140 and curl_stage == "up":
+                curl_stage = "down"
+                curl_counter += 1
+            press_stage = None
+            squat_stage = None
 
-            # Viz joint angle
-            self.viz_joint_angle(image, angle, elbow)
+            viz_joint_angle(image, angle, elbow)
 
-        elif self.current_action == "press":
-            # Get coords
-            shoulder = self.get_coordinates(landmarks, mp_pose, "left", "shoulder")
-            elbow = self.get_coordinates(landmarks, mp_pose, "left", "elbow")
-            wrist = self.get_coordinates(landmarks, mp_pose, "left", "wrist")
+        elif current_action == "press":
+            shoulder = get_coordinates(landmarks, mp_pose, "left", "shoulder")
+            elbow = get_coordinates(landmarks, mp_pose, "left", "elbow")
+            wrist = get_coordinates(landmarks, mp_pose, "left", "wrist")
 
-            # Calculate elbow angle
-            elbow_angle = self.calculate_angle(shoulder, elbow, wrist)
+            elbow_angle = calculate_angle(shoulder, elbow, wrist)
 
-            # Compute distances between joints
             shoulder2elbow_dist = abs(math.dist(shoulder, elbow))
             shoulder2wrist_dist = abs(math.dist(shoulder, wrist))
 
-            # Press counter logic
             if (elbow_angle > 130) and (shoulder2elbow_dist < shoulder2wrist_dist):
-                self.press_stage = "up"
+                press_stage = "up"
             if (
                 (elbow_angle < 50)
                 and (shoulder2elbow_dist > shoulder2wrist_dist)
-                and (self.press_stage == "up")
+                and (press_stage == "up")
             ):
-                self.press_stage = "down"
-                self.press_counter += 1
-            self.curl_stage = None
-            self.squat_stage = None
+                press_stage = "down"
+                press_counter += 1
+            curl_stage = None
+            squat_stage = None
 
             # Viz joint angle
-            self.viz_joint_angle(image, elbow_angle, elbow)
+            viz_joint_angle(image, elbow_angle, elbow)
 
-        elif self.current_action == "squat":
+        elif current_action == "squat":
             # Get coords
             # left side
-            left_shoulder = self.get_coordinates(landmarks, mp_pose, "left", "shoulder")
-            left_hip = self.get_coordinates(landmarks, mp_pose, "left", "hip")
-            left_knee = self.get_coordinates(landmarks, mp_pose, "left", "knee")
-            left_ankle = self.get_coordinates(landmarks, mp_pose, "left", "ankle")
+            left_shoulder = get_coordinates(landmarks, mp_pose, "left", "shoulder")
+            left_hip = get_coordinates(landmarks, mp_pose, "left", "hip")
+            left_knee = get_coordinates(landmarks, mp_pose, "left", "knee")
+            left_ankle = get_coordinates(landmarks, mp_pose, "left", "ankle")
             # right side
-            right_shoulder = self.get_coordinates(
-                landmarks, mp_pose, "right", "shoulder"
-            )
-            right_hip = self.get_coordinates(landmarks, mp_pose, "right", "hip")
-            right_knee = self.get_coordinates(landmarks, mp_pose, "right", "knee")
-            right_ankle = self.get_coordinates(landmarks, mp_pose, "right", "ankle")
+            right_shoulder = get_coordinates(landmarks, mp_pose, "right", "shoulder")
+            right_hip = get_coordinates(landmarks, mp_pose, "right", "hip")
+            right_knee = get_coordinates(landmarks, mp_pose, "right", "knee")
+            right_ankle = get_coordinates(landmarks, mp_pose, "right", "ankle")
 
             # Calculate knee angles
-            left_knee_angle = self.calculate_angle(left_hip, left_knee, left_ankle)
-            right_knee_angle = self.calculate_angle(right_hip, right_knee, right_ankle)
+            left_knee_angle = calculate_angle(left_hip, left_knee, left_ankle)
+            right_knee_angle = calculate_angle(right_hip, right_knee, right_ankle)
 
             # Calculate hip angles
-            left_hip_angle = self.calculate_angle(left_shoulder, left_hip, left_knee)
-            right_hip_angle = self.calculate_angle(
-                right_shoulder, right_hip, right_knee
-            )
+            left_hip_angle = calculate_angle(left_shoulder, left_hip, left_knee)
+            right_hip_angle = calculate_angle(right_shoulder, right_hip, right_knee)
 
             # Squat counter logic
             thr = 165
@@ -298,26 +273,25 @@ class VideoProcessor:
                 and (left_hip_angle < thr)
                 and (right_hip_angle < thr)
             ):
-                self.squat_stage = "down"
+                squat_stage = "down"
             if (
                 (left_knee_angle > thr)
                 and (right_knee_angle > thr)
                 and (left_hip_angle > thr)
                 and (right_hip_angle > thr)
-                and (self.squat_stage == "down")
+                and (squat_stage == "down")
             ):
-                self.squat_stage = "up"
-                self.squat_counter += 1
-            self.curl_stage = None
-            self.press_stage = None
+                squat_stage = "up"
+                squat_counter += 1
+            curl_stage = None
+            press_stage = None
 
             # Viz joint angles
-            self.viz_joint_angle(image, left_knee_angle, left_knee)
-            self.viz_joint_angle(image, left_hip_angle, left_hip)
+            viz_joint_angle(image, left_knee_angle, left_knee)
+            viz_joint_angle(image, left_hip_angle, left_hip)
 
         else:
             pass
-        return
 
     @st.cache()
     def prob_viz(self, res, input_frame):
