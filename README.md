@@ -16,5 +16,5 @@ The demo video for all the programs are in DEMO FOR JUDGES folder The streamlib 
 
 [All videos for demos are here](https://imgur.com/a/avVEBZv)
 
-idea dor detecting implemented from https://github.com/chrisprasanna/Exercise_Recognition_AI
+idea for detecting diff excercise using lstm implemented from https://github.com/chrisprasanna/Exercise_Recognition_AI
 with permission of mentors. trained our own lstm attention datadet though.
