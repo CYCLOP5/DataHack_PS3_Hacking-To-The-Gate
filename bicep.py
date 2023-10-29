@@ -15,8 +15,8 @@ last_curl_time = None
 
 def calc_angle(a, b, c):
     """
-    a,b,c -- a shoulder
-    b elbo
+    a shoulder
+    b elbow
     c wrist
 
     ab bc angle
