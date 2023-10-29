@@ -1,0 +1,74 @@
+import cv2
+import mediapipe as mp
+
+
+class BasePoseDetector:
+    def __init__(
+        self,
+        mode=False,
+        complexity=1,
+        smooth_landmarks=True,
+        enable_segmentation=False,
+        smooth_segmentation=True,
+        detectionCon=0.5,
+        trackCon=0.5,
+    ):
+        self.mode = mode
+        self.complexity = complexity
+        self.smooth_landmarks = smooth_landmarks
+        self.enable_segmentation = enable_segmentation
+        self.smooth_segmentation = smooth_segmentation
+        self.detectionCon = detectionCon
+        self.trackCon = trackCon
+        self.mpDraw = mp.solutions.drawing_utils
+        self.mpPose = mp.solutions.pose
+        self.pose = self.mpPose.Pose(
+            self.mode,
+            self.complexity,
+            self.smooth_landmarks,
+            self.enable_segmentation,
+            self.smooth_segmentation,
+            self.detectionCon,
+            self.trackCon,
+        )
+
+    def findPose(self, img, draw=True):
+        imgRGB = img[:, :, ::-1]
+        self.results = self.pose.process(imgRGB)
+
+        if self.results.pose_landmarks and draw:
+            self.mpDraw.draw_landmarks(
+                img, self.results.pose_landmarks, self.mpPose.POSE_CONNECTIONS
+            )
+
+        return img
+
+    def findPosition(self, img, draw=True):
+        self.lmList = []
+        if self.results.pose_landmarks:
+            for id, lm in enumerate(self.results.pose_landmarks.landmark):
+                h, w, c = img.shape
+                cx, cy = int(lm.x * w), int(lm.y * h)
+                self.lmList.append([id, cx, cy])
+                if draw:
+                    cv2.circle(img, (cx, cy), 5, (0, 0, 255), cv2.FILLED)
+        return self.lmList
+
+
+def main():
+    detector = BasePoseDetector()
+    cap = cv2.VideoCapture(0)
+    while cap.isOpened():
+        ret, img = cap.read()
+        if ret:
+            img = detector.findPose(img)
+            cv2.imshow("pose help", img)
+        if cv2.waitKey(10) & 0xFF == ord("q"):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main()
