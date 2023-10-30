@@ -1,3 +1,7 @@
+FOR DJ SANGHVI DATAHACK 2.0 24HR HACKATHON WHICH TOOK PLACE ON 28-29 OCT,2033
+
+
+
 PS3
 
 The repo contains a lot of mp4s of squat pushups and other excercises expect a long clone time.
