@@ -16,7 +16,7 @@ The LSTM attention model for recocgnition of excercise >100mb which is the max f
 
 The demo video for all the programs are in DEMO FOR JUDGES folder.
 
-The demo video for all the programs are in DEMO FOR JUDGES folder The streamlib graphs are in 'streamlit for graphs' folder.
+The demo video for all the programs are in DEMO FOR JUDGES folder The streamlit graphs are in 'streamlit for graphs' folder.
 
 [All videos for demos are here](https://imgur.com/a/avVEBZv)
 
